@@ -1,12 +1,18 @@
 package ctu.nengoros.jrosutils;
 
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.ros.concurrent.CancellableLoop;
 import org.ros.message.MessageListener;
+import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
+import org.ros.node.parameter.ParameterTree;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
+
+import ctu.nengoros.rosparam.ParameterTreeCrawler;
 
 import std_msgs.Bool;
 
@@ -18,9 +24,9 @@ import std_msgs.Bool;
  * @author Jaroslav Vitku vitkujar@fel.cvut.cz
  * 
  */
-public abstract class Configurable<T> extends AbstractNodeMain implements ConfigurableInt{
+public class Configurable extends AbstractNodeMain implements ConfigurableInt{
 
-	
+	int aa;
 	// node setup
 	private final boolean SEND = false;
 	private final int sleepTime = 1000;
@@ -61,8 +67,33 @@ public abstract class Configurable<T> extends AbstractNodeMain implements Config
 	
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
-		log = connectedNode.getLog();
 		
+		Map<GraphName,GraphName> remaps = connectedNode.getResolver().getRemappings();
+		
+		System.out.println("my namespace is: "+connectedNode.getResolver().getNamespace());
+		
+		if(remaps.containsKey("noIns")){
+			System.out.println("noooooo iiiiiiins "+remaps.get("noIns"));
+		}
+		ParameterTree pt = connectedNode.getParameterTree();
+		ParameterTreeCrawler ptc = new ParameterTreeCrawler(pt);
+		ptc.printAll();
+		if(pt.has("noIns")){
+			System.out.println("fffffffffff "+pt.getInteger("noIns"));
+		}
+		System.out.println(ptc.getAllRemapps(remaps));
+		System.out.println("reeeeeee " +GraphName.of("ccc").isRelative());
+		//System.out.println("tried to get param from my NS: "+pt.getString(GraphName.of("ccc").toGlobal()));
+		
+		
+		
+		System.out.println("--a is: "+GraphName.of("b"));
+		System.out.println("--a is: "+GraphName.of("~b"));
+		//System.out.println("--a is: "+GraphName.of("_b"));
+		//System.out.println("--a is: "+GraphName.of("__b"));
+		//connectedNode.getResolver().getNamespace()
+		log = connectedNode.getLog();
+		/*
 		// register subscribers
 		subscriberA = connectedNode.newSubscriber(aT, std_msgs.Bool._TYPE);
 
@@ -73,7 +104,7 @@ public abstract class Configurable<T> extends AbstractNodeMain implements Config
 				//y = copute(a);
 				send();
 			}
-		});
+		});// dynamic
 
 		// register publisher
 		publisher = connectedNode.newPublisher(yT, std_msgs.Bool._TYPE);		
@@ -97,6 +128,12 @@ public abstract class Configurable<T> extends AbstractNodeMain implements Config
 				}
 				Thread.sleep(sleepTime);
 			}
-		});
+		});*/
+	}
+
+
+	@Override
+	public GraphName getDefaultNodeName() {
+		return GraphName.of("cooonf");
 	}
 }
